@@ -50,7 +50,9 @@ public class NCXDocument {
 		String ncx = "ncx";
 		String meta = "meta";
 		String navPoint = "navPoint";
+                String pageTarget = "pageTarget";
 		String navMap = "navMap";
+                String pageList = "pageList";
 		String navLabel = "navLabel";
 		String content = "content";
 		String text = "text";
@@ -89,15 +91,21 @@ public class NCXDocument {
 			}
 			Document ncxDocument = ResourceUtil.getAsDocument(ncxResource);
 			Element navMapElement = DOMUtil.getFirstElementByTagNameNS(ncxDocument.getDocumentElement(), NAMESPACE_NCX, NCXTags.navMap);
-			TableOfContents tableOfContents = new TableOfContents(readTOCReferences(navMapElement.getChildNodes(), book));
+			TableOfContents tableOfContents = new TableOfContents(readTOCReferences(navMapElement.getChildNodes(), book , NCXTags.navPoint));
 			book.setTableOfContents(tableOfContents);
+                        
+                        
+                        Element pageListElement = DOMUtil.getFirstElementByTagNameNS(ncxDocument.getDocumentElement(), NAMESPACE_NCX, NCXTags.pageList);
+			TableOfContents pageList = new TableOfContents(readTOCReferences(pageListElement.getChildNodes(), book , NCXTags.pageTarget));
+			book.setPageList(pageList);
+                        
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}
 		return ncxResource;
 	}
 	
-	private static List<TOCReference> readTOCReferences(NodeList navpoints, Book book) {
+	private static List<TOCReference> readTOCReferences(NodeList navpoints, Book book  , String nodeName) {
 		if(navpoints == null) {
 			return new ArrayList<TOCReference>();
 		}
@@ -107,16 +115,16 @@ public class NCXDocument {
 			if (node.getNodeType() != Document.ELEMENT_NODE) {
 				continue;
 			}
-			if (! (node.getLocalName().equals(NCXTags.navPoint))) {
+			if (! (node.getLocalName().equals(nodeName))) {
 				continue;
 			}
-			TOCReference tocReference = readTOCReference((Element) node, book);
+			TOCReference tocReference = readTOCReference((Element) node, book , nodeName);
 			result.add(tocReference);
 		}
 		return result;
 	}
 
-	static TOCReference readTOCReference(Element navpointElement, Book book) {
+	static TOCReference readTOCReference(Element navpointElement, Book book , String nodeName) {
 		String label = readNavLabel(navpointElement);
 		String tocResourceRoot = StringUtil.substringBeforeLast(book.getSpine().getTocResource().getHref(), '/');
 		if (tocResourceRoot.length() == book.getSpine().getTocResource().getHref().length()) {
@@ -132,7 +140,7 @@ public class NCXDocument {
 			log.error("Resource with href " + href + " in NCX document not found");
 		}
 		TOCReference result = new TOCReference(label, resource, fragmentId);
-		List<TOCReference> childTOCReferences = readTOCReferences(navpointElement.getChildNodes(), book);
+		List<TOCReference> childTOCReferences = readTOCReferences(navpointElement.getChildNodes(), book , nodeName);
 		result.setChildren(childTOCReferences);
 		return result;
 	}

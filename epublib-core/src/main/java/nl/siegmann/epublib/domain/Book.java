@@ -301,6 +301,7 @@ public class Book implements Serializable {
 	private Metadata metadata = new Metadata();
 	private Spine spine = new Spine();
 	private TableOfContents tableOfContents = new TableOfContents();
+        private TableOfContents pageList = new TableOfContents();
 	private Guide guide = new Guide();
 	private Resource opfResource;
 	private Resource ncxResource;
@@ -409,6 +410,16 @@ public class Book implements Serializable {
 	public void setTableOfContents(TableOfContents tableOfContents) {
 		this.tableOfContents = tableOfContents;
 	}
+
+    public TableOfContents getPageList() {
+        return pageList;
+    }
+
+    public void setPageList(TableOfContents pageList) {
+        this.pageList = pageList;
+    }
+        
+        
 	
 	/**
 	 * The book's cover page as a Resource.
